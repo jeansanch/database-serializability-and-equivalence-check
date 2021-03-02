@@ -1,3 +1,7 @@
+// Alejandro Gemin Rosales - GRR20160188
+// Jean Carlo Sanchuki Filho - GRR20185527
+// Database Serializability and Equivalence Verification
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -37,6 +41,7 @@ typedef struct stackId{
 
 bool isSerial(NodeList *list);
 void printResult(NodeList *list, bool ser, bool ev);
+char toUpper(char type);
 
 int printCounter;
 int stackSize = 0;
@@ -55,17 +60,17 @@ int main(){
 	//while not end of input
 	while(scanf("%d %d %c %c", &trans_id, &node_id, &type, &acc) != EOF){
 		skip = false;
-		if(type < 123 && type > 96){
-			type = type - 32; 
-		}
+		type = toUpper(type);
 		if(!init){
 			if(stackId == NULL){
 				serial = isSerial(nodeList);
 				if(!serial)
 					eVision = false;
 				printResult(nodeList, serial, eVision);
+				//Initialize as true, but will be verified later
 				eVision = true;
-				// clearmemory
+				//Clear memory
+					aux = nodeList;
 				while(aux != NULL){
 					aux = nodeList->next;
 					free(nodeList->self->con);
@@ -81,7 +86,7 @@ int main(){
 		current = NULL;
 		aux = nodeList;
 		flag = false;
-		//check if the node already exist
+		//Check if the node already exist
 		if(aux != NULL){
 			if(aux->next == NULL){
 				if(aux->self->id == node_id){
@@ -200,6 +205,7 @@ int main(){
 				// Step 4: Check if first Node has another read that has a write on the third Node
 				// Step 5: Check if transactions order is Nodes 3,1,2,1
 				// If everything meet, it is impossible to have equivalent vision, because Node 1 will always conflict with someone
+				// Verification for the conflict of different writings
 				if(eVision){
 					aux = nodeList;
 					NodeList *aux2 = nodeList;
@@ -321,23 +327,55 @@ int main(){
 	return 0;
 }
 
+char toUpper(char type){
+	if(type < 123 && type > 96){
+		type = type - 32; 
+	}
+	return type;
+}
+
+//bool isSerial(NodeList *list){
+//	NodeList *aux, *auxR;
+//	aux = list;
+//	int i, j;
+//	while(aux != NULL){
+//		if(aux->self->con != NULL){
+//			for(i = 0; i < aux->self->size; i++){
+//				for(j = 0; j < aux->self->con[i]->size; j++){
+//					if(aux->self->con[i]->con[j] == aux->self)
+//						return false;
+//				}
+//			}
+//		}
+//		aux = aux->next;
+//	}
+//	return true;
+//} 
+
 bool isSerial(NodeList *list){
-	NodeList *aux, *auxR;
+	NodeList *aux;
 	aux = list;
-	int i, j;
-	while(aux != NULL){
+	int total = 0;
+	while(aux != NULL && total == 0){
 		if(aux->self->con != NULL){
-			for(i = 0; i < aux->self->size; i++){
-				for(j = 0; j < aux->self->con[i]->size; j++){
-					if(aux->self->con[i]->con[j] == aux->self)
-						return false;
-				}
-			}
+			total = isSerialAux(aux->self->con, aux->self->size, aux->self);
 		}
 		aux = aux->next;
 	}
-	return true;
-} 
+	return total > 0 ? true : false;
+}
+
+int isSerialAux(Node **list, int size, Node *start){
+	int i, total = 0;
+	for(i = 0; i < size; i++){
+		if(list[i] == start)
+				return 1;
+		if(list[i]->con != NULL){	
+			total = isSerialAux(list[i]->con, list[i]->size, start);
+		}
+	}
+	return total;
+}
 
 void printResult(NodeList *list, bool ser, bool ev){
 	NodeList *aux = list;
