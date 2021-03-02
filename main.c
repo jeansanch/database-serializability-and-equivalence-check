@@ -40,6 +40,7 @@ typedef struct stackId{
 } StackId;
 
 bool isSerial(NodeList *list);
+int isSerialAux(Node **list, int size, Node *start);
 void printResult(NodeList *list, bool ser, bool ev);
 char toUpper(char type);
 
@@ -50,7 +51,7 @@ int main(){
 	int trans_id, node_id;
 	char type, acc;
 	bool flag, skip, serial, eVision = true, flagConnected, in;
-	int actual, i, j, k, l, m;
+	int i, j, k, l, m;
 	StackId *stackId = NULL;
 	Hist *auxHist, *auxHist2;
 	NodeList *nodeList = NULL;
